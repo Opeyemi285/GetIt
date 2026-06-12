@@ -65,6 +65,9 @@ class RegisterCompleteRequest(BaseModel):
 
 @router.post("/register/complete")
 def register_complete(data: RegisterCompleteRequest):
+    if len(data.password) > 72:
+        raise HTTPException(status_code=400, detail="Password cannot be longer than 72 characters.")
+
     verified = supabase.table("email_verifications") \
         .select("*").eq("email", data.email).eq("used", True).execute()
 
