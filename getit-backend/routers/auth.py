@@ -1,11 +1,27 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
+from fastapi.security import OAuth2PasswordBearer
 from pydantic import BaseModel, EmailStr
+from jose import JWTError, jwt
 from database import supabase
 from utils.security import hash_password, verify_password, create_access_token, generate_otp
 from utils.email import send_verification_email
 from datetime import datetime, timedelta, timezone
+import os
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
+
+
+def get_current_user_id(token: str = Depends(oauth2_scheme)) -> str:
+    try:
+        payload = jwt.decode(token, os.getenv("JWT_SECRET"), algorithms=["HS256"])
+        user_id = payload.get("user_id")
+        if user_id is None:
+            raise HTTPException(status_code=401, detail="Invalid token")
+        return user_id
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
 
 
 class RegisterStartRequest(BaseModel):
@@ -112,3 +128,15 @@ def login(data: LoginRequest):
         "email": user["email"]
     })
     return {"access_token": token, "token_type": "bearer"}
+
+
+@router.get("/profile")
+def get_profile(user_id: str = Depends(get_current_user_id)):
+    result = supabase.table("users").select(
+        "id, first_name, last_name, email, is_verified, created_at"
+    ).eq("id", user_id).execute()
+
+    if not result.data:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    return result.data[0]
