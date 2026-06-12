@@ -1,0 +1,5 @@
+getit-backend/.env
+getit-backend/venv/
+getit-backend/__pycache__/
+getit-backend/**/__pycache__/
+getit-backend/**/*.pyc
