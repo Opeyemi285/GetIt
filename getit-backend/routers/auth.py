@@ -3,7 +3,7 @@ from pydantic import BaseModel, EmailStr
 from database import supabase
 from utils.security import hash_password, verify_password, create_access_token, generate_otp
 from utils.email import send_verification_email
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
@@ -20,7 +20,7 @@ def register_start(data: RegisterStartRequest):
         raise HTTPException(status_code=400, detail="Email already registered")
 
     otp = generate_otp()
-    expires_at = (datetime.utcnow() + timedelta(minutes=10)).isoformat()
+    expires_at = (datetime.now(timezone.utc) + timedelta(minutes=10)).isoformat()
 
     supabase.table("email_verifications").upsert({
         "email": data.email,
@@ -50,7 +50,7 @@ def verify_otp(data: VerifyOTPRequest):
     if record["code"] != data.code:
         raise HTTPException(status_code=400, detail="Invalid code")
 
-    if datetime.utcnow() > datetime.fromisoformat(record["expires_at"]):
+    if datetime.now(timezone.utc) > datetime.fromisoformat(record["expires_at"]):
         raise HTTPException(status_code=400, detail="Code has expired")
 
     supabase.table("email_verifications").update({"used": True}).eq("id", record["id"]).execute()
