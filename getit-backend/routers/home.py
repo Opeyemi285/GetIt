@@ -33,7 +33,7 @@ def get_home_data(
 
     # --- Popular Items (non-recommended, limit 6) ---
     popular_result = supabase.table("products") \
-        .select("id, name, price, image_url") \
+        .select("id, name, price, image_url, store_id") \
         .eq("category", category) \
         .eq("is_recommended", False) \
         .limit(6) \
@@ -43,7 +43,7 @@ def get_home_data(
 
     # --- Recommended for You ---
     recommended_result = supabase.table("products") \
-        .select("id, name, price, image_url, stores(name)") \
+        .select("id, name, price, image_url, store_id, stores(name)") \
         .eq("category", category) \
         .eq("is_recommended", True) \
         .limit(8) \
@@ -60,6 +60,7 @@ def get_home_data(
             "name": item["name"],
             "price": item["price"],
             "image_url": item.get("image_url"),
+            "store_id": item.get("store_id"),
             "store": store_name,
         })
 
@@ -84,7 +85,7 @@ def search_products(
 
     # Search products by name
     products_result = supabase.table("products") \
-        .select("id, name, price, image_url, category, stores(name)") \
+        .select("id, name, price, image_url, category, store_id, stores(name)") \
         .ilike("name", term) \
         .limit(20) \
         .execute()
@@ -100,6 +101,7 @@ def search_products(
             "price": item["price"],
             "image_url": item.get("image_url"),
             "category": item["category"],
+            "store_id": item.get("store_id"),
             "store": store_name,
         })
 
