@@ -48,14 +48,22 @@ def get_cart(user_id: str = Depends(get_current_user_id)):
 
 @router.post("")
 def add_to_cart(item: CartItemIn, user_id: str = Depends(get_current_user_id)):
-    # Check if this exact product/size/color combo already exists for the user
-    existing = supabase.table("cart_items") \
+    query = supabase.table("cart_items") \
         .select("id, quantity") \
         .eq("user_id", user_id) \
-        .eq("product_id", item.product_id) \
-        .eq("selected_size", item.selected_size) \
-        .eq("selected_color", item.selected_color) \
-        .execute()
+        .eq("product_id", item.product_id)
+
+    if item.selected_size is None:
+        query = query.is_("selected_size", "null")
+    else:
+        query = query.eq("selected_size", item.selected_size)
+
+    if item.selected_color is None:
+        query = query.is_("selected_color", "null")
+    else:
+        query = query.eq("selected_color", item.selected_color)
+
+    existing = query.execute()
 
     if existing.data:
         row = existing.data[0]
@@ -72,7 +80,6 @@ def add_to_cart(item: CartItemIn, user_id: str = Depends(get_current_user_id)):
         "selected_color": item.selected_color,
     }).execute()
     return result.data[0]
-
 
 @router.patch("/{cart_item_id}")
 def update_cart_item(cart_item_id: str, body: CartQuantityUpdate, user_id: str = Depends(get_current_user_id)):
