@@ -17,6 +17,7 @@ app.include_router(home.router)
 app.include_router(store.router)
 app.include_router(orders.router)
 app.include_router(cart.router)
+app.include_router(messages.router)
 
 @app.get("/")
 def root():
