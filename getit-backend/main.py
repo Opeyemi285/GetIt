@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routers import auth, home, store, orders, cart
+from routers import auth, home, store, orders, cart, messages
 
 app = FastAPI(title="GetIt API")
 
