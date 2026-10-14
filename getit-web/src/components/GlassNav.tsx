@@ -14,7 +14,7 @@ const tabs = [
 ];
 
 const ACTIVE = "#1a9a52";
-const INACTIVE = "rgba(0,0,0,0.65)";
+const INACTIVE = "#cdcdcd";
 const DRAG_THRESHOLD = 8; // px of sideways movement before a press becomes a drag
 
 export default function GlassNav({ unreadMessages = false }: { unreadMessages?: boolean }) {
@@ -102,7 +102,7 @@ export default function GlassNav({ unreadMessages = false }: { unreadMessages?: 
       onPointerUp={onPointerUp}
       onPointerCancel={onPointerCancel}
       onDragStart={(e) => e.preventDefault()}
-      className={`fixed bottom-[max(0.625rem,env(safe-area-inset-bottom))] left-1/2 z-40 w-[calc(100%-5rem)] max-w-xs -translate-x-1/2 touch-none select-none rounded-3xl border border-white/55 bg-white/25 p-1 shadow-[0_6px_24px_rgba(15,26,18,0.15)] backdrop-blur-xl backdrop-saturate-150 transition-transform duration-200 ${
+      className={`fixed bottom-[max(0.625rem,env(safe-area-inset-bottom))] left-1/2 z-40 w-[calc(100%-5rem)] max-w-xs -translate-x-1/2 touch-none select-none rounded-3xl border border-[#f3f0ea]/70 bg-[#f3f0ea]/30 p-1 shadow-[0_6px_24px_rgba(15,26,18,0.15)] backdrop-blur-xl backdrop-saturate-150 transition-transform duration-200 ${
         dragging ? "scale-105" : ""
       }`}
     >
@@ -110,7 +110,7 @@ export default function GlassNav({ unreadMessages = false }: { unreadMessages?: 
         {/* sliding glass highlight */}
         <li
           aria-hidden
-          className="pointer-events-none absolute inset-y-0 left-0 rounded-[20px] bg-white/60 transition-[transform,opacity] duration-200 ease-out"
+          className="pointer-events-none absolute inset-y-0 left-0 rounded-[20px] bg-[#f3f0ea]/70 transition-[transform,opacity] duration-200 ease-out"
           style={{
             width: `${100 / tabs.length}%`,
             transform: `translateX(${Math.max(highlight, 0) * 100}%)`,
@@ -140,7 +140,7 @@ export default function GlassNav({ unreadMessages = false }: { unreadMessages?: 
                   }
                 }}
                 aria-current={active ? "page" : undefined}
-                className="relative flex flex-col items-center gap-0.5 rounded-[20px] py-[5px] text-[10px] transition-colors hover:bg-white/30"
+                className="relative flex flex-col items-center gap-0.5 rounded-[20px] py-[5px] text-[10px] transition-colors hover:bg-[#f3f0ea]/40"
                 style={{ color }}
               >
                 <PngIcon src={t.icon} size={20} color={color} />
