@@ -21,6 +21,17 @@ export type Product = {
   storeName?: string;
 };
 
+export type StoreProduct = {
+  id: string;
+  name: string;
+  price: number;
+  currency?: string;
+  image?: string;
+  category?: string;
+  unit?: string;
+  tag?: string | null;
+};
+
 const toStore = (s: any): Store => ({
   id: s.id,
   name: s.name,
@@ -62,4 +73,25 @@ export async function fetchCartCount() {
   const d = await api<any>("/cart");
   const items = Array.isArray(d) ? d : d.items ?? [];
   return items.length as number;
+}
+
+export async function fetchStore(id: string) {
+  const s = await api<any>(`/store/${encodeURIComponent(id)}`);
+  return toStore(s);
+}
+
+export async function fetchStoreProducts(id: string) {
+  const d = await api<any[]>(`/store/${encodeURIComponent(id)}/products`);
+  return d.map(
+    (p): StoreProduct => ({
+      id: p.id,
+      name: p.name,
+      price: Number(p.price),
+      currency: p.currency,
+      image: p.image_url || undefined,
+      category: p.category || undefined,
+      unit: p.unit,
+      tag: p.tag,
+    })
+  );
 }

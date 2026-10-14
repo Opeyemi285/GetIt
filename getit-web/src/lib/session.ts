@@ -1,12 +1,31 @@
+export const AUTH_ENTRY = "/onboarding";
+
+function tokenExpired(token: string) {
+  try {
+    const payload = JSON.parse(
+      atob(token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/"))
+    );
+    return typeof payload.exp === "number" && payload.exp * 1000 < Date.now();
+  } catch {
+    return true; // unreadable token counts as logged out
+  }
+}
+
 export function isLoggedIn() {
-  return typeof window !== "undefined" && !!localStorage.getItem("token");
+  if (typeof window === "undefined") return false;
+  const token = localStorage.getItem("token");
+  if (!token) return false;
+  if (tokenExpired(token)) {
+    localStorage.removeItem("token");
+    return false;
+  }
+  return true;
 }
 
 export function logout() {
   localStorage.removeItem("token");
 }
 
-// remember where the user was trying to go, so login can send them back
 export function setNext(path: string) {
   sessionStorage.setItem("next", path);
 }

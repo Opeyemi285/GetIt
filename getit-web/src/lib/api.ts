@@ -20,15 +20,16 @@ export async function api<T>(path: string, options: RequestInit = {}): Promise<T
     },
   });
 
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    let detail = err.detail;
-    if (Array.isArray(detail)) {
-      const first = detail[0];
-      const field = first?.loc?.slice(1).join(".");
-      detail = field ? `${field}: ${first.msg}` : first?.msg;
+    if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        let detail = err.detail;
+        if (Array.isArray(detail)) {
+        const first = detail[0];
+        const field = first?.loc?.slice(1).join(".");
+        detail = field ? `${field}: ${first.msg}` : first?.msg;
+        }
+        if (res.status === 401 && token) localStorage.removeItem("token"); // <-- add this
+        throw new ApiError(detail ?? `Request failed (${res.status})`, res.status);
     }
-    throw new ApiError(detail ?? `Request failed (${res.status})`, res.status);
-  }
   return res.json();
 }

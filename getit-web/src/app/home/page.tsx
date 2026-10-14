@@ -12,7 +12,7 @@ import {
   type Product,
   type Store,
 } from "@/lib/home";
-import { isLoggedIn, setNext } from "@/lib/session";
+import { AUTH_ENTRY, isLoggedIn, setNext } from "@/lib/session";
 import Link from "next/dist/client/link";
 
 const CATEGORIES = ["Grocery", "Pharmacy", "Restaurant", "Toiletries", "Electronics"];
@@ -107,7 +107,7 @@ useEffect(() => {
   function go(path: string) {
     if (!isLoggedIn()) {
       setNext(path);
-      router.push("/login");
+      router.push(AUTH_ENTRY);
       return;
     }
     router.push(path);

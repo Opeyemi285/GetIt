@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { ProductCard } from "@/components/home/Cards";
 import { ApiError } from "@/lib/api";
 import { searchAll, type Product, type Store } from "@/lib/home";
-import { setNext } from "@/lib/session";
+import { AUTH_ENTRY, setNext } from "@/lib/session";
 
 type Tab = "All" | "Stores" | "Items";
 type Sort = "relevance" | "name" | "priceAsc" | "priceDesc" | "rating";
@@ -158,7 +158,7 @@ export default function SearchPage() {
 
   function loginFirst() {
     setNext("/search");
-    router.push("/login");
+    router.push(AUTH_ENTRY);
   }
 
   const hasQuery = submitted.length >= 2;

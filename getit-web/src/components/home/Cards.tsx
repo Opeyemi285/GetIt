@@ -32,7 +32,7 @@ export function StoreCard({ store }: { store: Store }) {
 export function ProductCard({ product }: { product: Product }) {
   return (
     <Link
-      href={product.storeId ? `/store/${product.storeId}` : "#"}
+      href={product.storeId ? `/store/${product.storeId}?product=${product.id}` : "#"}
       className="group block overflow-hidden rounded-2xl bg-[#c9f2d9] transition hover:-translate-y-1 hover:shadow-lg"
     >
       <div className="overflow-hidden">

@@ -1,39 +1,136 @@
 "use client";
 
+import { useRef, useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import PngIcon from "@/components/PngIcon";
+import { AUTH_ENTRY, isLoggedIn, setNext } from "@/lib/session";
 
 const tabs = [
-  { href: "/home", label: "Home", icon: "/tab-icons/home.png" },
-  { href: "/orders", label: "Orders", icon: "/tab-icons/orders.png" },
-  { href: "/messages", label: "Message", icon: "/tab-icons/message.png" },
-  { href: "/profile", label: "Profile", icon: "/tab-icons/profile.png" },
+  { href: "/home", label: "Home", icon: "/tab-icons/home.png", protected: false },
+  { href: "/orders", label: "Orders", icon: "/tab-icons/orders.png", protected: true },
+  { href: "/messages", label: "Message", icon: "/tab-icons/message.png", protected: true },
+  { href: "/profile", label: "Profile", icon: "/tab-icons/profile.png", protected: true },
 ];
 
 const ACTIVE = "#1a9a52";
 const INACTIVE = "rgba(0,0,0,0.65)";
+const DRAG_THRESHOLD = 8; // px of sideways movement before a press becomes a drag
 
 export default function GlassNav({ unreadMessages = false }: { unreadMessages?: boolean }) {
   const pathname = usePathname();
+  const router = useRouter();
+
+  const listRef = useRef<HTMLUListElement>(null);
+  const drag = useRef({ down: false, moved: false, startX: 0 });
+  const lastDragEnd = useRef(0);
+  const [dragging, setDragging] = useState(false);
+  const [preview, setPreview] = useState<{ index: number; path: string } | null>(null);
+
+  const activeIndex = tabs.findIndex((t) => pathname.startsWith(t.href));
+  // the preview only counts while we're still on the page it started from,
+  // so it clears itself once the new route has loaded
+  const previewIndex = preview && preview.path === pathname ? preview.index : null;
+  const highlight = previewIndex ?? activeIndex;
+
+  function indexAt(x: number) {
+    const rect = listRef.current!.getBoundingClientRect();
+    const i = Math.floor(((x - rect.left) / rect.width) * tabs.length);
+    return Math.min(tabs.length - 1, Math.max(0, i));
+  }
+
+  function open(t: (typeof tabs)[number]) {
+    if (t.protected && !isLoggedIn()) {
+      setNext(t.href);
+      router.push(AUTH_ENTRY);
+      return;
+    }
+    if (!pathname.startsWith(t.href)) router.push(t.href);
+  }
+
+  function onPointerDown(e: React.PointerEvent) {
+    if (e.pointerType === "mouse" && e.button !== 0) return;
+    drag.current = { down: true, moved: false, startX: e.clientX };
+  }
+
+  function onPointerMove(e: React.PointerEvent<HTMLElement>) {
+    const d = drag.current;
+    if (!d.down) return;
+    if (!d.moved) {
+      if (Math.abs(e.clientX - d.startX) < DRAG_THRESHOLD) return;
+      d.moved = true;
+      e.currentTarget.setPointerCapture(e.pointerId); // keep tracking even outside the bar
+      setDragging(true);
+    }
+    setPreview({ index: indexAt(e.clientX), path: pathname });
+  }
+
+  function onPointerUp(e: React.PointerEvent) {
+    const d = drag.current;
+    drag.current = { down: false, moved: false, startX: 0 };
+    if (!d.moved) return; // plain tap: the link handles it
+
+    lastDragEnd.current = Date.now();
+    setDragging(false);
+
+    const target = indexAt(e.clientX);
+    if (target === activeIndex) setPreview(null);
+    else setPreview({ index: target, path: pathname }); // stays put until the page changes
+    open(tabs[target]);
+  }
+
+  function onPointerCancel() {
+    drag.current = { down: false, moved: false, startX: 0 };
+    setDragging(false);
+    setPreview(null);
+  }
 
   return (
     <nav
       aria-label="Main"
-      className="fixed bottom-[max(0.625rem,env(safe-area-inset-bottom))] left-1/2 z-40 w-[calc(100%-5rem)] max-w-xs -translate-x-1/2 rounded-3xl border border-white/55 bg-white/25 p-1 shadow-[0_6px_24px_rgba(15,26,18,0.15)] backdrop-blur-xl backdrop-saturate-150"
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      onPointerCancel={onPointerCancel}
+      onDragStart={(e) => e.preventDefault()}
+      className={`fixed bottom-[max(0.625rem,env(safe-area-inset-bottom))] left-1/2 z-40 w-[calc(100%-5rem)] max-w-xs -translate-x-1/2 touch-none select-none rounded-3xl border border-white/55 bg-white/25 p-1 shadow-[0_6px_24px_rgba(15,26,18,0.15)] backdrop-blur-xl backdrop-saturate-150 transition-transform duration-200 ${
+        dragging ? "scale-105" : ""
+      }`}
     >
-      <ul className="flex items-center justify-between">
-        {tabs.map((t) => {
+      <ul ref={listRef} className="relative flex items-center justify-between">
+        {/* sliding glass highlight */}
+        <li
+          aria-hidden
+          className="pointer-events-none absolute inset-y-0 left-0 rounded-[20px] bg-white/60 transition-[transform,opacity] duration-200 ease-out"
+          style={{
+            width: `${100 / tabs.length}%`,
+            transform: `translateX(${Math.max(highlight, 0) * 100}%)`,
+            opacity: highlight < 0 ? 0 : 1,
+          }}
+        />
+
+        {tabs.map((t, i) => {
           const active = pathname.startsWith(t.href);
-          const color = active ? ACTIVE : INACTIVE;
+          const color = i === highlight ? ACTIVE : INACTIVE;
           return (
-            <li key={t.href} className="flex-1">
+            <li key={t.href} className="relative z-10 flex-1">
               <Link
                 href={t.href}
+                draggable={false}
+                onClick={(e) => {
+                  // the click that follows a drag is already handled in onPointerUp
+                  if (Date.now() - lastDragEnd.current < 400) {
+                    e.preventDefault();
+                    return;
+                  }
+                  if (t.protected && !isLoggedIn()) {
+                    e.preventDefault();
+                    setNext(t.href);
+                    router.push(AUTH_ENTRY);
+                  }
+                }}
                 aria-current={active ? "page" : undefined}
-                className={`relative flex flex-col items-center gap-0.5 rounded-[20px] py-[5px] text-[10px] transition ${
-                  active ? "bg-white/60" : "hover:bg-white/30"
-                }`}
+                className="relative flex flex-col items-center gap-0.5 rounded-[20px] py-[5px] text-[10px] transition-colors hover:bg-white/30"
                 style={{ color }}
               >
                 <PngIcon src={t.icon} size={20} color={color} />

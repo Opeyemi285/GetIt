@@ -43,7 +43,7 @@ export default function Onboarding() {
   }
 
   function handleBack() {
-    if (index === 0) router.push("/");
+    if (index === 0) router.push("/home");
     else changeSlide(index - 1);
   }
 
