@@ -166,7 +166,7 @@ useEffect(() => {
         </div>
 
         {/* Categories */}
-        <div className="mt-5 flex gap-3 overflow-x-auto pb-1">
+        <div className="mt-5 flex gap-3 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {CATEGORIES.map((c) => (
             <button
               key={c}
