@@ -1,0 +1,116 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-nunito), system-ui, sans-serif;
+}
+.splash {
+  position: relative;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #4BD3814D;
+}
+
+/* Frame 1 to 2: logo fades and scales in from almost invisible */
+.splash-logo {
+  animation: logo-in 1.6s ease-out 0.3s both;
+}
+
+/* Frame 2 to 3: button appears dim, then lights up */
+.splash-btn {
+  position: absolute;
+  bottom: 3rem;
+  left: 1.5rem;
+  right: 1.5rem;
+  max-width: 28rem;
+  margin: 0 auto;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 1rem;
+  text-decoration: none;
+  background-color: #4BD381;
+  color: #0f1a12;
+  animation: button-in 1.8s ease-out 1.8s both;
+  transition: filter 0.2s;
+}
+
+.splash-btn:hover {
+  filter: brightness(1.08);
+}
+
+@keyframes logo-in {
+  from {
+    opacity: 0.06;
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes button-in {
+  0% {
+    opacity: 0;
+    background-color: #2f5f43;
+    color: #3f7556;
+  }
+  40% {
+    opacity: 1;
+    background-color: #2f5f43;
+    color: #3f7556;
+  }
+  100% {
+    opacity: 1;
+    background-color: #4bd381;
+    color: #0f1a12;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .splash-logo,
+  .splash-btn {
+    animation: none;
+  }
+}
+@keyframes step-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.step-in {
+  animation: step-in 0.3s ease-out both;
+}

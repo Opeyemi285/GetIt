@@ -1,13 +1,13 @@
 from fastapi import APIRouter, HTTPException, Depends
 from database import supabase
-from routers.auth import get_current_user_id
+from routers.auth import get_optional_user_id
 
 router = APIRouter(prefix="/store", tags=["Store"])
 
 @router.get("/{store_id}/products")
 def get_store_products(
     store_id: str,
-    user_id: str = Depends(get_current_user_id),
+    user_id: str | None = Depends(get_optional_user_id),
 ):
     # Fetch products for the given store_id
     products_result = supabase.table("products") \

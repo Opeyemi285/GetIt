@@ -23,6 +23,19 @@ def get_current_user_id(token: str = Depends(oauth2_scheme)) -> str:
     except JWTError:
         raise HTTPException(status_code=401, detail="Invalid or expired token")
 
+optional_oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login", auto_error=False)
+
+
+def get_optional_user_id(token: str | None = Depends(optional_oauth2_scheme)) -> str | None:
+    """Returns the user id if a valid token is sent, otherwise None (guest)."""
+    if not token:
+        return None
+    try:
+        payload = jwt.decode(token, os.getenv("JWT_SECRET"), algorithms=["HS256"])
+        return payload.get("user_id")
+    except JWTError:
+        return None  # an expired token just means "guest" instead of an error
+
 
 class RegisterStartRequest(BaseModel):
     first_name: str

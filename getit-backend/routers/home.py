@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends, Query
 from database import supabase
-from routers.auth import get_current_user_id  # reuse your existing auth dependency
+from routers.auth import get_optional_user_id
 
 router = APIRouter(prefix="/home", tags=["Home"])
 
@@ -10,7 +10,7 @@ VALID_CATEGORIES = ["Grocery", "Pharmacy", "Restaurant", "Toiletries", "Electron
 @router.get("/{category}")
 def get_home_data(
     category: str,
-    user_id: str = Depends(get_current_user_id),
+    user_id: str | None = Depends(get_optional_user_id),
 ):
     """
     Returns featured stores, popular items, and recommended products
@@ -75,7 +75,7 @@ def get_home_data(
 @router.get("/search/products")
 def search_products(
     q: str = Query(..., min_length=1, description="Search term"),
-    user_id: str = Depends(get_current_user_id),
+    user_id: str | None = Depends(get_optional_user_id),
 ):
     """
     Full-text search across products and stores.
