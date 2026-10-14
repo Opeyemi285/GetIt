@@ -4,6 +4,25 @@ from routers.auth import get_optional_user_id
 
 router = APIRouter(prefix="/store", tags=["Store"])
 
+@router.get("/{store_id}")
+def get_store(
+    store_id: str,
+    user_id: str | None = Depends(get_optional_user_id),
+):
+    try:
+        result = supabase.table("stores") \
+            .select("id, name, category, image_url") \
+            .eq("id", store_id) \
+            .execute()
+    except Exception:
+        # a malformed id (not a valid UUID) shouldn't surface as a 500
+        raise HTTPException(status_code=404, detail="Store not found")
+
+    if not result.data:
+        raise HTTPException(status_code=404, detail="Store not found")
+
+    return result.data[0]
+
 @router.get("/{store_id}/products")
 def get_store_products(
     store_id: str,
