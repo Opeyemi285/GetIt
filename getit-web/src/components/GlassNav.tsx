@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import PngIcon from "@/components/PngIcon";
@@ -25,27 +25,21 @@ export default function GlassNav({ unreadMessages = false }: { unreadMessages?: 
   const drag = useRef({ down: false, moved: false, startX: 0 });
   const lastDragEnd = useRef(0);
   const [dragging, setDragging] = useState(false);
-  const [preview, setPreview] = useState<{ index: number; path: string } | null>(null);
+  const [preview, setPreview] = useState<number | null>(null);
+
+  // a preview only lives until the route changes (or the page is shown again)
+  useEffect(() => {
+    setPreview(null);
+    setDragging(false);
+  }, [pathname]);
 
   const activeIndex = tabs.findIndex((t) => pathname.startsWith(t.href));
-  // the preview only counts while we're still on the page it started from,
-  // so it clears itself once the new route has loaded
-  const previewIndex = preview && preview.path === pathname ? preview.index : null;
-  const highlight = previewIndex ?? activeIndex;
+  const highlight = preview ?? activeIndex;
 
   function indexAt(x: number) {
     const rect = listRef.current!.getBoundingClientRect();
     const i = Math.floor(((x - rect.left) / rect.width) * tabs.length);
     return Math.min(tabs.length - 1, Math.max(0, i));
-  }
-
-  function open(t: (typeof tabs)[number]) {
-    if (t.protected && !isLoggedIn()) {
-      setNext(t.href);
-      router.push(AUTH_ENTRY);
-      return;
-    }
-    if (!pathname.startsWith(t.href)) router.push(t.href);
   }
 
   function onPointerDown(e: React.PointerEvent) {
@@ -62,7 +56,7 @@ export default function GlassNav({ unreadMessages = false }: { unreadMessages?: 
       e.currentTarget.setPointerCapture(e.pointerId); // keep tracking even outside the bar
       setDragging(true);
     }
-    setPreview({ index: indexAt(e.clientX), path: pathname });
+    setPreview(indexAt(e.clientX));
   }
 
   function onPointerUp(e: React.PointerEvent) {
@@ -74,9 +68,24 @@ export default function GlassNav({ unreadMessages = false }: { unreadMessages?: 
     setDragging(false);
 
     const target = indexAt(e.clientX);
-    if (target === activeIndex) setPreview(null);
-    else setPreview({ index: target, path: pathname }); // stays put until the page changes
-    open(tabs[target]);
+    const t = tabs[target];
+
+    // released on the page we're already on
+    if (target === activeIndex) {
+      setPreview(null);
+      return;
+    }
+
+    // guests can't open protected tabs: reset the highlight, then send them to onboarding
+    if (t.protected && !isLoggedIn()) {
+      setPreview(null);
+      setNext(t.href);
+      router.push(AUTH_ENTRY);
+      return;
+    }
+
+    setPreview(target); // stays until the route changes, then the effect above clears it
+    router.push(t.href);
   }
 
   function onPointerCancel() {
@@ -125,6 +134,7 @@ export default function GlassNav({ unreadMessages = false }: { unreadMessages?: 
                   }
                   if (t.protected && !isLoggedIn()) {
                     e.preventDefault();
+                    setPreview(null);
                     setNext(t.href);
                     router.push(AUTH_ENTRY);
                   }
