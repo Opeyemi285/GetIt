@@ -14,7 +14,7 @@ const tabs = [
 ];
 
 const ACTIVE = "#1a9a52";
-const INACTIVE = "#fefefe";
+const INACTIVE = "#4B5563";
 const DRAG_THRESHOLD = 8; // px of sideways movement before a press becomes a drag
 
 export default function GlassNav({ unreadMessages = false }: { unreadMessages?: boolean }) {
