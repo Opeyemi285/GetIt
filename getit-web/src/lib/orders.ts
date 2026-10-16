@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { api, ApiError } from "./api";
 import type { CartItem } from "./cart";
 
@@ -63,4 +64,54 @@ export async function placeOrders(input: {
   }
 
   return { placedItemIds, orderCount, error: null as string | null };
+}
+export type OrderItem = {
+  id: string;
+  name: string;
+  qty: number;
+  unit?: string;
+  price: number;
+  image?: string;
+};
+
+export type Order = {
+  id: string;
+  storeName: string;
+  storeLogo?: string;
+  date: string;
+  status: string;
+  total: number;
+  items: OrderItem[];
+  // not sent by the backend yet, the page shows it once it exists
+  runner?: { name: string; photo?: string; rating?: number; reviews?: number };
+};
+
+export async function fetchOrders(): Promise<Order[]> {
+  const rows = await api<any[]>("/orders");
+  return rows.map((o) => ({
+    id: o.id,
+    storeName: o.storeName || "Store",
+    storeLogo: o.storeLogo || undefined,
+    date: o.date,
+    status: o.status,
+    total: Number(o.total ?? 0),
+    items: (o.items ?? []).map(
+      (i: any): OrderItem => ({
+        id: i.id,
+        name: i.name,
+        qty: i.qty,
+        unit: i.unit || undefined,
+        price: Number(i.price),
+        image: i.image || undefined,
+      })
+    ),
+    runner: o.runner
+      ? {
+          name: o.runner.name,
+          photo: o.runner.photo || undefined,
+          rating: o.runner.rating,
+          reviews: o.runner.reviews,
+        }
+      : undefined,
+  }));
 }
