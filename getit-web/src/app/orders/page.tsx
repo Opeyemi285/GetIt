@@ -292,7 +292,7 @@ export default function OrdersPage() {
         )}
 
         {loading && !error && (
-          <div className="mt-6 grid gap-4 lg:grid-cols-2 lg:gap-5">
+          <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-5">
             {Array.from({ length: 4 }).map((_, i) => (
               <Skeleton key={i} className="h-32" />
             ))}
@@ -317,7 +317,7 @@ export default function OrdersPage() {
         )}
 
         {!loading && !error && shown.length > 0 && (
-          <ul className="mt-6 grid gap-4 lg:grid-cols-2 lg:gap-5">
+          <ul className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-5">
             {shown.map((o) => (
               <li key={o.id}>
                 <button
