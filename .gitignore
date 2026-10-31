@@ -1,7 +1,59 @@
-getit-backend/.env
-getit-backend/venv/
-getit-backend/__pycache__/
-getit-backend/**/__pycache__/
-getit-backend/**/*.pyc
+# Dependencies
+node_modules/
+.pnp
+.pnp.*
+
+# Builds & Output
+.next/
+out/
+build/
+dist/
+
+# Python & Virtual Environments
+venv/
+.venv/
 __pycache__/
 *.pyc
+
+# Environment & Secrets
+.env
+.env*.local
+
+# IDE & System Files
+.idea/
+.vscode/
+.DS_Store
+*.pem
+/shelf/
+/workspace.xml
+/httpRequests/# Monorepo Global Ignores
+
+# Dependencies
+node_modules/
+.pnp
+.pnp.*
+
+# Builds & Output
+.next/
+out/
+build/
+dist/
+
+# Python & Virtual Environments
+venv/
+.venv/
+__pycache__/
+*.pyc
+
+# Environment & Secrets
+.env
+.env*.local
+
+# IDE & System Files
+.idea/
+.vscode/
+.DS_Store
+*.pem
+/shelf/
+/workspace.xml
+/httpRequests/
